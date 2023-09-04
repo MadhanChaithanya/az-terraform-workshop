@@ -3,27 +3,27 @@ resource "azurerm_resource_group" "opsmcrg" {
   location = var.location
 }
 
-resource "azurerm_network_security_group" "javansg" {
+resource "azurerm_network_security_group" "opsmcnsg" {
   name                = "${var.application_name}-nsg"
   location            = var.location
   resource_group_name = azurerm_resource_group.opsmcrg.name
 }
 
-resource "azurerm_virtual_network" "javavnet" {
+resource "azurerm_virtual_network" "opsmcvnet" {
   name                = "${var.application_name}-vnet"
   location            = var.location
   resource_group_name = azurerm_resource_group.opsmcrg.name
-  address_space       = var.java_cidr
+  address_space       = var.opsmc_cidr
 }
 
-resource "azurerm_subnet" "javasubnet" {
+resource "azurerm_subnet" "opsmcsubnet" {
   name           = "${var.application_name}-sub"
   resource_group_name = azurerm_resource_group.opsmcrg.name
-  virtual_network_name = azurerm_virtual_network.javavnet.name
-  address_prefixes = var.java_sub_cidr
+  virtual_network_name = azurerm_virtual_network.opsmcvnet.name
+  address_prefixes = var.opsmc_sub_cidr
 }
 
-resource "azurerm_public_ip" "javapubip" {
+resource "azurerm_public_ip" "opsmcpubip" {
   name                = "${var.application_name}-pubip"
   resource_group_name = azurerm_resource_group.opsmcrg.name
   location            = var.location
@@ -31,24 +31,24 @@ resource "azurerm_public_ip" "javapubip" {
 
 }
 
-resource "azurerm_network_interface" "javanic" {
+resource "azurerm_network_interface" "opsmcnic" {
   name                = "${var.application_name}-nic"
   location            = var.location
   resource_group_name = azurerm_resource_group.opsmcrg.name
-  depends_on	=	[azurerm_public_ip.javapubip]
+  depends_on	=	[azurerm_public_ip.opsmcpubip]
   ip_configuration {
     name                          = "${var.application_name}-nic"
-    subnet_id                     = azurerm_subnet.javasubnet.id
+    subnet_id                     = azurerm_subnet.opsmcsubnet.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.javapubip.id
+    public_ip_address_id          = azurerm_public_ip.opsmcpubip.id
   }
 }
 
-resource "azurerm_virtual_machine" "javavm" {
+resource "azurerm_virtual_machine" "opsmcvm" {
   name                = "${var.application_name}-vm"
   location            = var.location
   resource_group_name = azurerm_resource_group.opsmcrg.name
-  network_interface_ids = [azurerm_network_interface.javanic.id]
+  network_interface_ids = [azurerm_network_interface.opsmcnic.id]
   vm_size               = var.vm_size
 
   # Uncomment this line to delete the OS disk automatically when deleting the VM
